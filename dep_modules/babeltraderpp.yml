@@ -1,0 +1,43 @@
+name: babeltradercpp
+variables:
+  - build_type: release
+  - babeltradercpp_tag: v1.2.0
+  - babeltradercpp_url: https://github.com/MuggleWei/babeltrader_cpp_base.git
+  - mugglecpp_tag: v1.2.2
+source:
+  maintainer: mugglewei
+  name: babeltradercpp
+  tag: ${babeltradercpp_tag}
+  repo_kind: git
+  repo_url: ${babeltradercpp_url}
+  git_depth: 1
+deps:
+  - maintainer: mugglewei
+    name: mugglecpp
+    tag: ${mugglecpp_tag}
+jobs:
+  build:
+    steps:
+      - name: build
+        run: >
+          cd ${HPB_TASK_DIR};
+          cmake \
+            -S ${HPB_SOURCE_PATH} \
+            -B ${HPB_BUILD_DIR} \
+            -DCMAKE_BUILD_TYPE=${build_type} \
+            -DBUILD_SHARED_LIBS=ON \
+            -DCMAKE_INSTALL_PREFIX=${HPB_OUTPUT_DIR} \
+            -DCMAKE_PREFIX_PATH="${HPB_DEPS_DIR}";
+          cmake --build ${HPB_BUILD_DIR} --target install;
+  package:
+    needs: [build]
+    steps:
+      - name: pack
+        run: >
+          hpb pack;
+  upload:
+    needs: [package]
+    steps:
+      - name: upload
+        run: >
+          hpb push;

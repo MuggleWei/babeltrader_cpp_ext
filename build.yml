@@ -1,0 +1,53 @@
+name: babeltradercpp_ext
+variables:
+  - build_type: release
+  - babeltradercpp_ext_tag: v1.0.0
+  - babeltradercpp_tag: v1.2.0
+  - openssl_tag: openssl-3.1.1
+  - zlib_tag: v1.2.13
+  - googletest_tag: v1.13.0
+source:
+  maintainer: mugglewei
+  name: babeltradercpp_ext
+  tag: ${babeltradercpp_ext_tag}
+deps:
+  - maintainer: mugglewei
+    name: babeltradercpp
+    tag: ${babeltradercpp_tag}
+  - maintainer: openssl
+    name: openssl
+    tag: ${openssl_tag}
+  - maintainer: madler
+    name: zlib
+    tag: ${zlib_tag}
+test_deps:
+  - maintainer: google
+    name: googletest
+    tag: ${googletest_tag}
+jobs:
+  build:
+    steps:
+      - name: build
+        run: >
+          cd ${HPB_TASK_DIR};
+          cmake \
+            -S ${HPB_SOURCE_PATH} \
+            -B ${HPB_BUILD_DIR} \
+            -DCMAKE_BUILD_TYPE=${build_type} \
+            -DBUILD_TESTING=ON \
+            -DBUILD_SHARED_LIBS=ON \
+            -DCMAKE_INSTALL_PREFIX=${HPB_OUTPUT_DIR} \
+            -DCMAKE_PREFIX_PATH="${HPB_DEPS_DIR};${HPB_TEST_DEPS_DIR}";
+          cmake --build ${HPB_BUILD_DIR} --target install;
+  package:
+    needs: [build]
+    steps:
+      - name: pack
+        run: >
+          hpb pack;
+  upload:
+    needs: [package]
+    steps:
+      - name: upload
+        run: >
+          hpb push;

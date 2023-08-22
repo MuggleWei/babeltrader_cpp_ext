@@ -1,0 +1,9 @@
+libdir=@CMAKE_INSTALL_FULL_LIBDIR@
+includedir=@CMAKE_INSTALL_FULL_INCLUDEDIR@
+
+Name: babeltradercpp_ext
+Description: babeltrader cpp ext library
+Version: @BABELTRADER_CPP_EXT_VERSION@
+URL: https://github.com/mugglewei/babeltrader_cpp_ext
+Libs: -L${libdir} -lbabeltradercpp_ext
+Cflags: -I${includedir}
