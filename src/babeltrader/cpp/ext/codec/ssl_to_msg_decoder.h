@@ -11,8 +11,8 @@
 #ifndef BABELTRADER_CPP_EXT_SSL_TO_MSG_DECODER_H_
 #define BABELTRADER_CPP_EXT_SSL_TO_MSG_DECODER_H_
 
-#include "babeltrader/cpp/ext/macro.h"
 #include "babeltrader/cpp/decoder.h"
+#include "babeltrader/cpp/ext/macro.h"
 
 NS_BABELTRADER_BEGIN
 
@@ -24,7 +24,9 @@ public:
 	BABELTRADER_CPP_EXT_EXPORT
 	virtual ~SSLToMsgDecoder();
 
-	// TODO:
+	BABELTRADER_CPP_EXT_EXPORT
+	virtual bool Decode(Session *session, void *data,
+						uint32_t datalen) override;
 };
 
 NS_BABELTRADER_END

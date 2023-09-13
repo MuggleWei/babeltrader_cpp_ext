@@ -46,6 +46,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 ################################
 
 option(BUILD_SHARED_LIBS "Build shared or static library" ON)
+option(BUILD_SANITIZER "Build with sanitizer" OFF)
 option(BABELTRADER_CPP_EXT_BUILD_EXAMPLE "babeltrader cpp ext build example" OFF)
 option(BABELTRADER_CPP_EXT_INSTALL_EXAMPLE "babeltrader cpp ext install example" OFF)
 
@@ -61,6 +62,7 @@ endforeach()
 # build flags
 message("# BUILD_SHARED_LIBS: ${BUILD_SHARED_LIBS}")
 message("# BUILD_TESTING: ${BUILD_TESTING}")
+message("# BUILD_SANITIZER: ${BUILD_SANITIZER}")
 message("# BABELTRADER_CPP_EXT_BUILD_EXAMPLE: ${BABELTRADER_CPP_EXT_BUILD_EXAMPLE}")
 message("# BABELTRADER_CPP_EXT_INSTALL_EXAMPLE: ${BABELTRADER_CPP_EXT_INSTALL_EXAMPLE}")
 
@@ -138,6 +140,7 @@ list(GET babeltrader_cpp_ext_semver_list 0 BABELTRADER_CPP_EXT_VERSION_MAJOR)
 list(GET babeltrader_cpp_ext_semver_list 1 BABELTRADER_CPP_EXT_VERSION_MINOR)
 list(GET babeltrader_cpp_ext_semver_list 2 BABELTRADER_CPP_EXT_VERSION_PATCH)
 set(BABELTRADER_CPP_EXT_VERSION "${BABELTRADER_CPP_EXT_VERSION_MAJOR}.${BABELTRADER_CPP_EXT_VERSION_MINOR}.${BABELTRADER_CPP_EXT_VERSION_PATCH}")
+set(BABELTRADER_CPP_EXT_SOVERSION "${BABELTRADER_CPP_EXT_VERSION_MAJOR}")
 
 set(babeltrader_src_dir ${CMAKE_CURRENT_LIST_DIR}/src)
 set(babeltrader_gen_dir ${CMAKE_CURRENT_BINARY_DIR}/generated)
@@ -166,11 +169,30 @@ add_library(babeltradercpp_ext ${BABELTRADER_CPP_EXT_LIB_TYPE}
 	${babeltrader_cpp_ext_src_cpp}
 	${babeltrader_cpp_ext_src_h}
 	${babeltrader_cpp_ext_gen_h})
+target_compile_definitions(babeltradercpp_ext PRIVATE MUGGLE_HOLD_LOG_MACRO)
+set_target_properties(babeltradercpp_ext PROPERTIES 
+	VERSION ${BABELTRADER_CPP_EXT_VERSION}
+	SOVERSION ${BABELTRADER_CPP_EXT_SOVERSION}
+	DEBUG_POSTFIX d)
 target_include_directories(babeltradercpp_ext PUBLIC
 	$<BUILD_INTERFACE:${babeltrader_src_dir}>
 	$<BUILD_INTERFACE:${babeltrader_gen_dir}>
 	$<INSTALL_INTERFACE:include>)
-target_link_libraries(babeltradercpp_ext babeltradercpp)
+target_link_libraries(babeltradercpp_ext babeltradercpp ${OPENSSL_LIBRARIES})
+
+if (BUILD_SANITIZER)
+	if ((${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU") OR
+		(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang"))
+		target_compile_options(babeltradercpp_ext PUBLIC
+			-fsanitize=undefined
+			-fsanitize=address
+			-fsanitize=leak)
+		target_link_options(babeltradercpp_ext PUBLIC
+			-fsanitize=undefined
+			-fsanitize=address
+			-fsanitize=leak)
+	endif()
+endif()
 
 ################################
 # install
@@ -239,3 +261,58 @@ set(CPACK_PACKAGE_VERSION_MINOR ${BABELTRADER_CPP_EXT_VERSION_MINOR})
 set(CPACK_PACKAGE_VERSION_PATCH ${BABELTRADER_CPP_EXT_VERSION_PATCH})
 set(CPACK_SOURCE_GENERATOR "TGZ")
 include(CPack)
+
+################################
+# example
+################################
+
+function(add_example name folder)
+	message("add example ${name} ${folder}")
+	
+	set(name example_${name})
+
+	file(GLOB_RECURSE tmp_h ${folder}/*.h)
+	file(GLOB_RECURSE tmp_c ${folder}/*.c)
+	file(GLOB_RECURSE tmp_cpp ${folder}/*.cpp)
+	file(GLOB_RECURSE tmp_cc ${folder}/*.cc)
+
+	if (WIN32)
+		add_executable(${name} ${tmp_h} ${tmp_c} ${tmp_cpp} ${tmp_cc})
+		set_target_properties(${name}
+			PROPERTIES
+			FOLDER "example"
+			VS_DEBUGGER_WORKING_DIRECTORY "$(OutDir)"
+		)
+	else()
+		add_executable(${name} ${tmp_c} ${tmp_cpp} ${tmp_cc})
+		if (APPLE)
+			set_target_properties(${name}
+				PROPERTIES
+				INSTALL_RPATH "@executable_path/../lib")
+		elseif (UNIX)
+			set_target_properties(${name}
+				PROPERTIES
+				INSTALL_RPATH "\$ORIGIN/../lib"
+				)
+		endif()
+	endif(WIN32)
+	add_dependencies(${name} babeltradercpp_ext)
+	target_include_directories(${name} PUBLIC
+		${CMAKE_CURRENT_LIST_DIR}/example_include)
+	target_link_libraries(${name} babeltradercpp_ext)
+	target_compile_definitions(${name} PUBLIC MUGGLE_HOLD_LOG_MACRO)
+
+	if (BABELTRADER_CPP_EXT_INSTALL_EXAMPLE)
+		install(TARGETS ${name} RUNTIME DESTINATION bin)
+	endif()
+endfunction()
+
+if (BABELTRADER_CPP_BUILD_EXAMPLE)
+	set(example_root_dir ${CMAKE_CURRENT_LIST_DIR}/example)
+	FILE(GLOB subdirs RELATIVE ${example_root_dir} ${example_root_dir}/*)
+	FOREACH(subdir ${subdirs})
+		IF(IS_DIRECTORY ${example_root_dir}/${subdir})
+			add_example(${subdir} ${example_root_dir}/${subdir})
+		ENDIF()
+	ENDFOREACH()
+endif()
