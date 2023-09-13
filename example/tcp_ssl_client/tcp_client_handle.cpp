@@ -42,12 +42,17 @@ void TcpClientHandle::OnAddCtx(NetEventLoop *evloop, SocketContext *ctx)
 
 	session_ = session;
 
-	if (!session_->GetSSL()->Connect()) {
-		ctx->Shutdown();
+	if (session->SSLConnect() == babeltrader::SSL_CONNECT_STATUS_ERROR) {
+		char err_msg[512];
+		session->GetSSL()->GetLastError(err_msg, sizeof(err_msg));
+		LOG_ERROR("failed ssl connect: addr=%s, err_msg=%s", session->GetAddr(),
+				  err_msg);
+
+		session->Close();
 		return;
 	}
 
-	if (session_->GetSSL()->IsEstablished()) {
+	if (session_->IsSSLReady()) {
 		session_->OnConnection();
 	}
 }
@@ -57,12 +62,17 @@ void TcpClientHandle::OnMessage(NetEventLoop *evloop, SocketContext *ctx)
 
 	TcpClientSession *session = (TcpClientSession *)ctx->GetUserData();
 
-	if (!session->GetSSL()->IsEstablished()) {
-		if (!session->GetSSL()->Connect()) {
+	if (!session->IsSSLReady()) {
+		if (session->SSLConnect() == babeltrader::SSL_CONNECT_STATUS_ERROR) {
+			char err_msg[512];
+			session_->GetSSL()->GetLastError(err_msg, sizeof(err_msg));
+			LOG_ERROR("failed ssl connect: addr=%s, err_msg=%s",
+					  session->GetAddr(), err_msg);
+
 			session->Close();
 			return;
 		}
-		if (!session->GetSSL()->IsEstablished()) {
+		if (!session->IsSSLReady()) {
 			return;
 		}
 		LOG_INFO("ssl connection established");
@@ -103,7 +113,7 @@ void TcpClientHandle::OnTimer(NetEventLoop *evloop)
 		return;
 	}
 
-	if (!session_->GetSSL()->IsEstablished()) {
+	if (!session_->IsSSLReady()) {
 		return;
 	}
 

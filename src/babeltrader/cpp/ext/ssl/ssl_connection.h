@@ -16,6 +16,12 @@
 
 NS_BABELTRADER_BEGIN
 
+enum eSSLConnectStatus {
+	SSL_CONNECT_STATUS_ESTABLISHING = 0,
+	SSL_CONNECT_STATUS_READY,
+	SSL_CONNECT_STATUS_ERROR,
+};
+
 class SSLConnection {
 public:
 	BABELTRADER_CPP_EXT_EXPORT
@@ -43,14 +49,13 @@ public:
 	virtual void Cleanup() = 0;
 
 	BABELTRADER_CPP_EXT_EXPORT
-	virtual void GetLastError(int retcode, char *buf,
-							  unsigned long bufsize) = 0;
+	virtual void GetLastError(char *buf, unsigned long bufsize) = 0;
 
 	BABELTRADER_CPP_EXT_EXPORT
-	virtual bool Connect() = 0;
+	virtual eSSLConnectStatus Connect() = 0;
 
 	BABELTRADER_CPP_EXT_EXPORT
-	virtual bool Accept() = 0;
+	virtual eSSLConnectStatus Accept() = 0;
 
 protected:
 	bool is_established_;
