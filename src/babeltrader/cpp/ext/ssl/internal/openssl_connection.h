@@ -27,14 +27,14 @@ public:
 	virtual int Write(void *data, int datalen) override;
 	virtual void Shutdown() override;
 	virtual void Cleanup() override;
-	virtual void GetLastError(int retcode, char *buf,
-							  unsigned long bufsize) override;
+	virtual void GetLastError(char *buf, unsigned long bufsize) override;
 
-	virtual bool Connect() override;
-	virtual bool Accept() override;
+	virtual eSSLConnectStatus Connect() override;
+	virtual eSSLConnectStatus Accept() override;
 
 private:
 	SSL *ssl_;
+	Session *session_;
 };
 
 NS_BABELTRADER_END

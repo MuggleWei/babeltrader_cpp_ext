@@ -16,8 +16,6 @@
 #include "babeltrader/cpp/ext/config.h"
 #include "babeltrader/cpp/ext/macro.h"
 
-// #include "babeltrader/cpp/ext/codec/ssl_to_msg_decoder.h"
-
 #include "babeltrader/cpp/ext/ssl/ssl_connection.h"
 #include "babeltrader/cpp/ext/ssl/ssl_context.h"
 #include "babeltrader/cpp/ext/ssl/ssl_context_factory.h"

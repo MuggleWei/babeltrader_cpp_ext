@@ -51,4 +51,19 @@ int SSLSession::Read(void *buf, size_t len)
 	return ssl_conn_->Read(buf, len);
 }
 
+bool SSLSession::IsSSLReady()
+{
+	return GetSSL()->IsEstablished();
+}
+
+eSSLConnectStatus SSLSession::SSLAccept()
+{
+	return GetSSL()->Accept();
+}
+
+eSSLConnectStatus SSLSession::SSLConnect()
+{
+	return GetSSL()->Connect();
+}
+
 NS_BABELTRADER_END

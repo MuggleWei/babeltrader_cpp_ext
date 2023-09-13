@@ -38,6 +38,15 @@ public:
 	BABELTRADER_CPP_EXT_EXPORT
 	virtual int Read(void *buf, size_t len) override;
 
+	BABELTRADER_CPP_EXT_EXPORT
+	bool IsSSLReady();
+
+	BABELTRADER_CPP_EXT_EXPORT
+	eSSLConnectStatus SSLAccept();
+
+	BABELTRADER_CPP_EXT_EXPORT
+	eSSLConnectStatus SSLConnect();
+
 private:
 	SSLConnection *ssl_conn_;
 };
