@@ -2,7 +2,7 @@ name: babeltradercpp_ext
 variables:
   - build_type: release
   - babeltradercpp_ext_tag: v1.0.0
-  - babeltradercpp_tag: v1.2.0
+  - babeltradercpp_tag: v1.3.0
   - openssl_tag: openssl-3.1.1
   - zlib_tag: v1.2.13
   - googletest_tag: v1.13.0

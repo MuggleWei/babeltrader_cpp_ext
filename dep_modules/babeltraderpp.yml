@@ -1,7 +1,7 @@
 name: babeltradercpp
 variables:
   - build_type: release
-  - babeltradercpp_tag: v1.2.0
+  - babeltradercpp_tag: v1.3.0
   - babeltradercpp_url: https://github.com/MuggleWei/babeltrader_cpp_base.git
   - mugglecpp_tag: v1.2.2
 source:
