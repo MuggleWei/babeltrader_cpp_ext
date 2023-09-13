@@ -153,10 +153,10 @@ void TcpClientHandle::Connect()
 {
 	std::thread th([&] {
 		while (true) {
+			std::this_thread::sleep_for(std::chrono::seconds(3));
 			SocketContext *ctx =
 				SocketUtils::TCPConnect(host_.c_str(), port_.c_str(), 3);
 			if (ctx == nullptr) {
-				std::this_thread::sleep_for(std::chrono::seconds(3));
 				continue;
 			}
 			evloop_->AddContext(ctx);
