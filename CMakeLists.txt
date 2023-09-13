@@ -46,9 +46,10 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 ################################
 
 option(BUILD_SHARED_LIBS "Build shared or static library" ON)
+option(BUILD_TESTING "Build testing" OFF)
 option(BUILD_SANITIZER "Build with sanitizer" OFF)
-option(BABELTRADER_CPP_EXT_BUILD_EXAMPLE "babeltrader cpp ext build example" OFF)
-option(BABELTRADER_CPP_EXT_INSTALL_EXAMPLE "babeltrader cpp ext install example" OFF)
+option(BUILD_EXAMPLE "babeltrader cpp ext build example" OFF)
+option(INSTALL_EXAMPLE "babeltrader cpp ext install example" OFF)
 
 ################################
 # show inputs
@@ -63,8 +64,8 @@ endforeach()
 message("# BUILD_SHARED_LIBS: ${BUILD_SHARED_LIBS}")
 message("# BUILD_TESTING: ${BUILD_TESTING}")
 message("# BUILD_SANITIZER: ${BUILD_SANITIZER}")
-message("# BABELTRADER_CPP_EXT_BUILD_EXAMPLE: ${BABELTRADER_CPP_EXT_BUILD_EXAMPLE}")
-message("# BABELTRADER_CPP_EXT_INSTALL_EXAMPLE: ${BABELTRADER_CPP_EXT_INSTALL_EXAMPLE}")
+message("# BUILD_EXAMPLE: ${BUILD_EXAMPLE}")
+message("# INSTALL_EXAMPLE: ${INSTALL_EXAMPLE}")
 
 ################################
 # deps
@@ -302,12 +303,12 @@ function(add_example name folder)
 	target_link_libraries(${name} babeltradercpp_ext)
 	target_compile_definitions(${name} PUBLIC MUGGLE_HOLD_LOG_MACRO)
 
-	if (BABELTRADER_CPP_EXT_INSTALL_EXAMPLE)
+	if (INSTALL_EXAMPLE)
 		install(TARGETS ${name} RUNTIME DESTINATION bin)
 	endif()
 endfunction()
 
-if (BABELTRADER_CPP_BUILD_EXAMPLE)
+if (BUILD_EXAMPLE)
 	set(example_root_dir ${CMAKE_CURRENT_LIST_DIR}/example)
 	FILE(GLOB subdirs RELATIVE ${example_root_dir} ${example_root_dir}/*)
 	FOREACH(subdir ${subdirs})
