@@ -153,7 +153,9 @@ void TcpClientHandle::Connect()
 {
 	std::thread th([&] {
 		while (true) {
+			LOG_DEBUG("wait for 3 seconds");
 			std::this_thread::sleep_for(std::chrono::seconds(3));
+			LOG_DEBUG("try to connect: %s:%s", host_.c_str(), port_.c_str());
 			SocketContext *ctx =
 				SocketUtils::TCPConnect(host_.c_str(), port_.c_str(), 3);
 			if (ctx == nullptr) {
