@@ -16,7 +16,13 @@ void TcpServerHandle::OnAddCtx(NetEventLoop *evloop, SocketContext *ctx)
 {
 	MUGGLE_UNUSED(evloop);
 	MUGGLE_UNUSED(ctx);
-	LOG_INFO("TCP Listen handle add context");
+	if (ctx->GetSocketType() == MUGGLE_SOCKET_CTX_TYPE_TCP_LISTEN) {
+		char local_addr[MUGGLE_SOCKET_ADDR_STRLEN];
+		muggle_socket_local_addr(ctx->GetSocket(), local_addr,
+								 sizeof(local_addr), 0);
+		LOG_INFO("TCP Listen context add into evloop: listen addr=%s",
+				 local_addr);
+	}
 }
 void TcpServerHandle::OnConnect(NetEventLoop *evloop, SocketContext *ctx)
 {
