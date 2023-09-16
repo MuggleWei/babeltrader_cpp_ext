@@ -21,8 +21,8 @@ public:
 	OpenSSLContextFactory();
 	virtual ~OpenSSLContextFactory();
 
-	virtual SSLContext *NewServerContext(const char *key,
-										 const char *cert) override;
+	virtual SSLContext *NewServerContext(const char *cert, const char *key,
+										 const char *passphrase) override;
 	virtual SSLContext *NewClientContext(const char *ca) override;
 };
 
