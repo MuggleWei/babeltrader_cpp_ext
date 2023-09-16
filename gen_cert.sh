@@ -49,6 +49,7 @@ echo "----------------------------------"
 echo "Gen Server private key"
 echo "----------------------------------"
 openssl genrsa -out server.key 2048
+openssl rsa -aes256 -passout "pass:hello123" -in server.key -out server.enc.key
 echo ""
 
 # Generate Server CSR

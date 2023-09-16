@@ -27,15 +27,17 @@ public:
 	/**
 	 * @brief new ssl server context
 	 *
-	 * @param key   key filepath
-	 * @param cert  certificate filepath
+	 * @param cert        certificate filepath
+	 * @param key         key filepath
+	 * @param passphrase  passphrase for key file, if NULL, don't use passphrase
 	 *
 	 * @return
 	 *   - on success, return ssl context pointer
 	 *   - on failed, return nullptr
 	 */
 	BABELTRADER_CPP_EXT_EXPORT
-	virtual SSLContext *NewServerContext(const char *key, const char *cert);
+	virtual SSLContext *NewServerContext(const char *cert, const char *key,
+										 const char *passphrase);
 
 	/**
 	 * @brief new ssl client context
@@ -55,7 +57,7 @@ public:
 	 * @return last error string
 	 */
 	BABELTRADER_CPP_EXT_EXPORT
-	const char* GetLastErrorString();
+	const char *GetLastErrorString();
 
 protected:
 	char last_err_[1024];

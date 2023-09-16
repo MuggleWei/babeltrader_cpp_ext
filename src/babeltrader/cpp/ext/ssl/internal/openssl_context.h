@@ -26,8 +26,9 @@ public:
 
 	void Cleanup();
 
-	bool InitServerCtxFromFile(const char *key_filepath,
-							   const char *crt_filepath);
+	bool InitServerCtxFromFile(const char *crt_filepath,
+							   const char *key_filepath,
+							   const char *passphrase);
 
 	bool InitClientCtx(const char *ca_filepath);
 

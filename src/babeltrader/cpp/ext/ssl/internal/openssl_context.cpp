@@ -14,14 +14,6 @@ OpenSSLContext::~OpenSSLContext()
 	Cleanup();
 }
 
-void OpenSSLContext::Cleanup()
-{
-	if (ctx_) {
-		SSL_CTX_free(ctx_);
-		ctx_ = nullptr;
-	}
-}
-
 SSLConnection *OpenSSLContext::NewConnection()
 {
 	SSL *ssl = SSL_new(ctx_);
@@ -40,8 +32,60 @@ SSLConnection *OpenSSLContext::NewConnection()
 	return conn;
 }
 
-bool OpenSSLContext::InitServerCtxFromFile(const char *key_filepath,
-										   const char *crt_filepath)
+void OpenSSLContext::Cleanup()
+{
+	if (ctx_) {
+		SSL_CTX_free(ctx_);
+		ctx_ = nullptr;
+	}
+}
+
+static EVP_PKEY *openssl_load_enc_key(const char *pem_filepath,
+									  const char *passphrase)
+{
+	BIO *bp = NULL;
+	EVP_PKEY *key = NULL;
+	int ret = 0;
+
+	bp = BIO_new(BIO_s_file());
+	if (bp == NULL) {
+		LOG_ERROR("BIO_new(BIO_s_file()) failed: %s",
+				  ERR_reason_error_string(ERR_get_error()));
+		goto load_enc_key_exit;
+	}
+
+	ret = BIO_read_filename(bp, pem_filepath);
+	if (ret <= 0) {
+		LOG_ERROR("BIO_read_filename failed: %s",
+				  ERR_reason_error_string(ERR_get_error()));
+		goto load_enc_key_exit;
+	}
+
+	key = EVP_PKEY_new();
+	if (key == NULL) {
+		LOG_ERROR("failed allocate key structure");
+		goto load_enc_key_exit;
+	}
+
+	if (PEM_read_bio_PrivateKey(bp, &key, NULL, (void *)passphrase) == NULL) {
+		LOG_ERROR("PEM_read_bio_PrivateKey failed: %s",
+				  ERR_reason_error_string(ERR_get_error()));
+		EVP_PKEY_free(key);
+		key = NULL;
+		goto load_enc_key_exit;
+	}
+
+load_enc_key_exit:
+	if (bp) {
+		BIO_free(bp);
+	}
+
+	return key;
+}
+
+bool OpenSSLContext::InitServerCtxFromFile(const char *crt_filepath,
+										   const char *key_filepath,
+										   const char *passphrase)
 {
 	if (ctx_) {
 		LOG_ERROR("repeated init ssl context");
@@ -63,12 +107,33 @@ bool OpenSSLContext::InitServerCtxFromFile(const char *key_filepath,
 		return false;
 	}
 
-	if (SSL_CTX_use_PrivateKey_file(ctx_, key_filepath, SSL_FILETYPE_PEM) <=
-		0) {
-		LOG_ERROR("failed set ssl private key: err=%s, crt filepath=%s",
-				  ERR_reason_error_string(ERR_get_error()), crt_filepath);
-		Cleanup();
-		return false;
+	if (passphrase) {
+		EVP_PKEY *pkey = openssl_load_enc_key(key_filepath, passphrase);
+		if (pkey == NULL) {
+			LOG_ERROR("failed load enc private key: key_filepath=%s",
+					  key_filepath);
+			Cleanup();
+			return false;
+		}
+
+		if (SSL_CTX_use_PrivateKey(ctx_, pkey) != 1) {
+			LOG_ERROR("failed use private key: key_filepath=%s, err=%s",
+					  key_filepath,
+					  ERR_reason_error_string(ERR_get_error()));
+			EVP_PKEY_free(pkey);
+			Cleanup();
+			return false;
+		}
+
+		EVP_PKEY_free(pkey);
+	} else {
+		if (SSL_CTX_use_PrivateKey_file(ctx_, key_filepath, SSL_FILETYPE_PEM) <=
+			0) {
+			LOG_ERROR("failed set ssl private key: err=%s, crt filepath=%s",
+					  ERR_reason_error_string(ERR_get_error()), crt_filepath);
+			Cleanup();
+			return false;
+		}
 	}
 
 	return true;

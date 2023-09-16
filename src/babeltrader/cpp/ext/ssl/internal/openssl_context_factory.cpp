@@ -13,8 +13,9 @@ OpenSSLContextFactory::~OpenSSLContextFactory()
 {
 }
 
-SSLContext *OpenSSLContextFactory::NewServerContext(const char *key,
-													const char *cert)
+SSLContext *OpenSSLContextFactory::NewServerContext(const char *cert,
+													const char *key,
+													const char *passphrase)
 {
 	OpenSSLContext *ctx = new OpenSSLContext();
 	if (ctx == nullptr) {
@@ -24,7 +25,7 @@ SSLContext *OpenSSLContextFactory::NewServerContext(const char *key,
 		return nullptr;
 	}
 
-	if (!ctx->InitServerCtxFromFile(key, cert)) {
+	if (!ctx->InitServerCtxFromFile(cert, key, passphrase)) {
 		delete ctx;
 		return nullptr;
 	}
