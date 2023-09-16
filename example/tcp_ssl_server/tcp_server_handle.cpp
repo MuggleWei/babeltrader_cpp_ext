@@ -6,6 +6,7 @@ TcpServerHandle::TcpServerHandle()
 	: last_timer_trigger_(0)
 	, codec_chain_(nullptr)
 	, dispatcher_(nullptr)
+	, ssl_ctx_(nullptr)
 {
 }
 TcpServerHandle::~TcpServerHandle()
